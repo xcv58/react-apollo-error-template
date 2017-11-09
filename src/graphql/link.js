@@ -1,26 +1,10 @@
-import { graphql, print } from "graphql";
-import { ApolloLink, Observable } from "apollo-link";
-import { schema } from "./schema";
+import { ApolloLink } from 'apollo-link'
+import { RetryLink } from 'apollo-link-retry'
+import { HttpLink } from 'apollo-link-http'
 
-export const link = new ApolloLink(operation => {
-  return new Observable(observer => {
-    const { query, operationName, variables } = operation;
-    delay(300)
-      .then(() =>
-        graphql(schema, print(query), null, null, variables, operationName)
-      )
-      .then(result => {
-        observer.next(result);
-        observer.complete();
-      })
-      .catch(observer.error.bind(observer));
-  });
-});
-
-function delay(ms) {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve();
-    }, ms);
-  });
-}
+export const link = ApolloLink.from([
+  new RetryLink({ max: 4 }),
+  new HttpLink({
+    uri: 'https://api.graph.cool/simple/v1/cixmkt2ul01q00122mksg82pn'
+  })
+])
